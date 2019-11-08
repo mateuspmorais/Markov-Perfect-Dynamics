@@ -54,3 +54,7 @@ print(p2)
 kernel <- density(Estoques$n)
 print(kernel)
 plot(kernel)
+
+#estimation of the relationship between x and i (policy function)
+
+
