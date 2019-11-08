@@ -49,7 +49,8 @@ print(p1)
 p2 <- autoplot(pacf(Estoques$n,lag.max = 8, plot = FALSE), conf.int.fill = '#0000FF', conf.int.value = 0.95, conf.int.type = 'ar') 
 print(p2) 
 
-# contemporaneous relation
-
-
 #estimation of the distribution of n
+
+kernel <- density(Estoques$n)
+print(kernel)
+plot(kernel)
