@@ -20,6 +20,8 @@ library(extrafont)
 library(extrafontdb)
 library(showtext)
 library(AER)
+library(extraDistr)
+library(e1071)
 
 #reading and cleaning data
 set.seed(123)
@@ -122,4 +124,16 @@ ggplot(data = Estoques, aes(x = i, y = x)) + stat_summary(fun.data=mean_cl_norma
   labs(y = 'Encomendas', x = 'Estoque') + 
   ggtitle('Estoque X Vendas') + theme_classic() +
   theme(plot.title = element_text(lineheight=2, face="bold", size = 14, hjust = 0.5))
+
+
+
+#Estimation of the Value functions
+
+shocks <- rdunif(100, 1, 8)
+probi0 <- data.frame(probi0 = numeric())
+for(j in 0:max(Estoques$i)) {
+    probi0[j,1] <- mean(Estoques$i[Estoques$t==1] == j)
+}
+i0 <- data.frame(i0 = numeric())
+i0 <- rdiscrete(100, probs = unlist(probi0), values = c(0:19))
   
