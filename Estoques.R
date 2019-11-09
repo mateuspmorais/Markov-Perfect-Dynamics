@@ -87,34 +87,33 @@ ggplot(Estoques, aes(x=i, y=x)) + geom_point() + ggtitle('Estoque X Encomendas')
 hist(Estoques$x,main="Encomendas", xlab="Encomendas",
      ylab= "Numero de Firmas", breaks = 20)
 
-politica <- data.frame(prob0 = numeric(), prob11 = numeric(), prob12 = numeric(),
+politica <- data.frame(prob0 = numeric(), prob12 = numeric(),
                        prob13 = numeric(), prob14 = numeric(), prob15 = numeric(),
                        prob16 = numeric(), prob17 = numeric(), prob18 = numeric())
-for(j in 1:max(Estoques$i)) {
-politica[j,1] <- mean(Estoques$x[Estoques$i==j] == 0)
+for(j in 0:max(Estoques$i)) {
+politica[j + 1,1] <- mean(Estoques$x[Estoques$i==j] == 0)
 }
-for(j in 1:max(Estoques$i)) {
-politica[j,2] <- mean(Estoques$x[Estoques$i==j] == 12)
+for(j in 0:max(Estoques$i)) {
+politica[j + 1,2] <- mean(Estoques$x[Estoques$i==j] == 12)
 }
-for(j in 1:max(Estoques$i)) {
-politica[j,3] <- mean(Estoques$x[Estoques$i==j] == 13)
+for(j in 0:max(Estoques$i)) {
+politica[j + 1,3] <- mean(Estoques$x[Estoques$i==j] == 13)
 }
-for(j in 1:max(Estoques$i)) {
-politica[j,4] <- mean(Estoques$x[Estoques$i==j] == 14)
+for(j in 0:max(Estoques$i)) {
+politica[j + 1,4] <- mean(Estoques$x[Estoques$i==j] == 14)
 }
-for(j in 1:max(Estoques$i)) {
-politica[j,5] <- mean(Estoques$x[Estoques$i==j] == 15)
+for(j in 0:max(Estoques$i)) {
+politica[j + 1,5] <- mean(Estoques$x[Estoques$i==j] == 15)
 }
-for(j in 1:max(Estoques$i)) {
-politica[j,6] <- mean(Estoques$x[Estoques$i==j] == 16)
-}
-
-for(j in 1:max(Estoques$i)) {
-politica[j,7] <- mean(Estoques$x[Estoques$i==j] == 17)
+for(j in 0:max(Estoques$i)) {
+politica[j + 1,6] <- mean(Estoques$x[Estoques$i==j] == 16)
 }
 
-for(j in 1:max(Estoques$i)) {
-politica[j,8] <- mean(Estoques$x[Estoques$i==j] == 18)
+for(j in 0:max(Estoques$i)) {
+politica[j + 1,7] <- mean(Estoques$x[Estoques$i==j] == 17)
 }
 
+for(j in 0:max(Estoques$i)) {
+politica[j + 1,8] <- mean(Estoques$x[Estoques$i==j] == 18)
+}
 
