@@ -19,6 +19,7 @@ library(stargazer)
 library(extrafont)
 library(extrafontdb)
 library(showtext)
+library(AER)
 
 #reading and cleaning data
 set.seed(123)
@@ -26,38 +27,40 @@ Estoques <- read_table2("http://www.economia.puc-rio.br/lrezende/OI1/Estoques.tx
                         col_names = c('loja','t','i','x'))
 Estoques <- Estoques[-nrow(Estoques),]
 Estoques <- pdata.frame(Estoques, index = c('loja','t'))
-Estoques$lag_i <- lag(Estoques$i,-1)
+Estoques$lag_i <- lag(Estoques$i,1)
+Estoques$forw_i <- lag(Estoques$i,-1) 
+Estoques$forw_i[is.na(Estoques$forw_i)] <- 0
 Estoques$lag_x <- lag(Estoques$x)
 Estoques$lag_i[is.na(Estoques$lag_i)] <- 0
 Estoques$lag_x[is.na(Estoques$lag_x)] <- 0
 
+
+
 #genrating the n series
 
-Estoques$n <- pmin(Estoques$i + Estoques$x - Estoques$lag_i,Estoques$i) + pmax(Estoques$lag_x - Estoques$i,0)
-
+Estoques$n <- Estoques$i + Estoques$x - Estoques$forw_i
+Estoques$m <- 0
+for(i in 1:nrow(Estoques)) {
+    row <- Estoques[i,]
+   if(row$t == 10){Estoques[i,9] <- NA}else{Estoques[i,9] <- row$n}
+}
+Estoques[1889,9] =6
 #investigating the statistical properties of n
 
 #histogram
 
-hist(Estoques$n,main="Unidades de Produto Vendidas", xlab="Unidades de Produto Vendidas",
-     ylab= "Numero de Firmas", breaks = 20)
+hist(Estoques$m,main="Unidades de Produto Vendidas", xlab="Unidades de Produto Vendidas",
+     ylab= "Densidade", breaks = c(0,1,2,3,4,5,6,7,8,9), xlim= c(0, 10), freq = FALSE)
+
 
 #ols plot
 
-ggplot(data = Estoques, aes(x = i, y = n)) + stat_summary(fun.data=mean_cl_normal) + 
-  geom_smooth(method='lm',formula= Estoques$n ~ Estoques$i) + 
-  labs(x = 'Estoque', y = 'Unidades de Produto Vendidas') + 
+ggplot(data = Estoques, aes(x = m, y = i)) + stat_summary(fun.data=mean_cl_normal) + 
+  geom_smooth(method='lm',formula= Estoques$i ~ Estoques$m) + ylim(0, 20) + xlim(0, 10) +
+  labs(y = 'Estoque', x = 'Unidades de Produto Vendidas') + 
   ggtitle('Estoque X Vendas') + theme_classic() +
   theme(plot.title = element_text(lineheight=2, face="bold", size = 14, hjust = 0.5))
   
-
-Estoques$m <- 0
-for(i in 1:nrow(Estoques)) {
-    row <- Estoques[i,]
-   if(row$t == 10){Estoques[i,8] <- 0}else{Estoques[i,8] <- row$n}
-}
-
-
 
 
 #arma <- arma(Estoques$n, order = c(1, 1))
@@ -71,11 +74,7 @@ print(p2)
 
 #estimation of the distribution of n
 
-kernel <- density(Estoques$n) 
-print(kernel)
-plot(kernel,main="Unidades de Produto Vendidas \n (Distribuição Estimada)")
-
-kernel <- density(Estoques$m) 
+kernel <- density(Estoques$m,na.rm = TRUE) 
 print(kernel)
 plot(kernel,main="Unidades de Produto Vendidas \n (Distribuição Estimada)")
 
@@ -117,3 +116,10 @@ for(j in 0:max(Estoques$i)) {
 politica[j + 1,8] <- mean(Estoques$x[Estoques$i==j] == 18)
 }
 
+ggplot(data = Estoques, aes(x = i, y = x)) + stat_summary(fun.data=mean_cl_normal) + 
+  geom_smooth(method='lm',formula= Estoques$i ~ Estoques$x) +
+  ylim(0, 20) + xlim(0, 20) +
+  labs(y = 'Encomendas', x = 'Estoque') + 
+  ggtitle('Estoque X Vendas') + theme_classic() +
+  theme(plot.title = element_text(lineheight=2, face="bold", size = 14, hjust = 0.5))
+  
