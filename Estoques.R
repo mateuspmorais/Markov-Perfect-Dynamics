@@ -124,19 +124,42 @@ ggplot(data = Estoques, aes(x = i, y = x)) + stat_summary(fun.data=mean_cl_norma
 #Estimation of the Value functions
 start_time_w = Sys.time()
 
+#defining variables
 w <- data.frame(matrix(ncol = 4, nrow = 3000))
 w[,1] <- 0
 w[,2] <- 0 
 w[,3] <- 0 
 w[,4] <- 0
 
+
+w_hat <- data.frame(matrix(ncol = 4, nrow = 3000))
+w_hat[,1] <- 0
+w_hat[,2] <- 0 
+w_hat[,3] <- 0 
+w_hat[,4] <- 0
+
+politica_k <- data.frame(matrix(ncol = 8, nrow = 21))
 probi0 <- data.frame(probi0 = numeric())
+
 for(j in 0:max(Estoques$i)) {
   probi0[j,1] <- mean(Estoques$i[Estoques$t==1] == j)
 }
-it <- rdiscrete(3000, probs = unlist(probi0), values = c(0:19))
-action <- data.frame(a1 = numeric())
 
+i0 <- rdiscrete(3000, probs = unlist(probi0), values = c(0:19))
+action <- data.frame(a1 = numeric())
+action_hat <- array(dim = c(3000,500))
+
+it = i0
+it_hat <- i0
+for(i in 1:499){
+it_hat = as.array(as.matrix(rbind(it_hat,i0)))
+}
+
+politica_hat <- array(dim = c(500))
+politica_hat <- rnorm(500,8,1)
+
+
+#Loop
 for(i in 1:100) {
 shocks <- rdunif(3000, 1, 8)
 
@@ -152,7 +175,7 @@ w[,4] <- w[,4] + ((0.95)^(i - 1))*unlist(it)^2
 
 #transition
 it = pmax.int(it + unlist(action) - shocks,0)
-}
+
 
 w_mean<- data.frame(matrix(ncol = 4, nrow = 1))
 w_mean[1,1] <- mean(w[,1])
@@ -160,40 +183,28 @@ w_mean[1,2] <- mean(w[,2])
 w_mean[1,3] <- mean(w[,3])
 w_mean[1,4] <- mean(w[,4])
 
-end_time_w <- Sys.time()
 #profit of alternative policies
 
-start_time_ineq = Sys.time()
+#my.list <- list(d1, d2)
+for(j in 1:500){
+for(l in 1:length(it_hat[j,])) {
+if(it_hat[j,l] < politica_hat[j]){action_hat[l,j] <- rdiscrete(1,probs = unlist(politica[it_hat[j,l]+ 1,]),
+                                                         values = c(0,12,13,14,15,16,17,18))} else {
+                                                           action_hat[l,j] <- 0
+                                                         }}}
 
-w_hat <- data.frame(matrix(ncol = 4, nrow = 3000))
-w_hat[,1] <- 0
-w_hat[,2] <- 0 
-w_hat[,3] <- 0 
-w_hat[,4] <- 0
-politica_k <- data.frame(matrix(ncol = 8, nrow = 21))
-
-for(k in 1:500){ 
-it <- rdiscrete(3000, probs = unlist(probi0), values = c(0:19))
-s <- rnorm(1)
-
-if(round(s) > 0){ politica_k <- rbind(rep(c(0,0,0,0,0.5,0.3,0.15,0.05), round(s)), politica) 
-}else if(round(s) == 0){politica_k <- politica}else{politica_k <- head(politica,round(s))}
-
-for(i in 1:100) {
-  shocks <- rdunif(3000, 1, 8)
-  
-  for(j in 1:length(it)) {
-    action[j,1] <- rdiscrete(1, probs = unlist(politica_k[it[j]+ 1,]), values = c(0,12,13,14,15,16,17,18))
-  }  
+subset <- action_hat[,j]
+dummy <- apply(array(subset),1,function(subset)ifelse((subset>0),1,0))
   #profit
-  w_hat[,1] <- w_hat[,1] + ((0.95)^(i - 1))*10*pmax(it + unlist(action), unlist(shocks))
-  w_hat[,2] <- w_hat[,2] + ((0.95)^(i - 1))*unlist(action) 
-  w_hat[,3] <- w_hat[,3] + ((0.95)^(i - 1))*apply(action,2,function(action)ifelse((action>0),1,0))
-  w_hat[,4] <- w_hat[,4] + ((0.95)^(i - 1))*unlist(it)^2  
+  w_hat[,1,j] <- w_hat[,1,j] + ((0.95)^(i - 1))*10*pmax(it_hat[j,] + unlist(action_hat[,j]), unlist(shocks))
+  w_hat[,2,j] <- w_hat[,2,j] + ((0.95)^(i - 1))*unlist(action_hat[,j]) 
+  w_hat[,3,j] <- w_hat[,3,j] + ((0.95)^(i - 1))*dummy
+  w_hat[,4,j] <- w_hat[,4,j] + ((0.95)^(i - 1))*unlist(it_hat)^2  
   
   #transition
-  it = pmax.int(it + unlist(action) - shocks,0)
+  it_hat[j,] = pmax.int(it_hat[j,] + unlist(action_hat[,j]) - shocks,0)
 }
+end_time_w <- Sys.time()
 
 wh_mean<- data.frame(matrix(ncol = 4, nrow = 1))
 wh_mean[1,1] <- mean(w_hat[,1])
@@ -203,8 +214,7 @@ wh_mean[1,4] <- mean(w_hat[,4])
 
 g <- data.frame(matrix(ncol = 4, nrow = 500))
 g[k,] <- w_mean - wh_mean
-}
-end_time_ineq <- Sys.time()
+
 
 #minimization function
 start_time_min <- Sys.time()
