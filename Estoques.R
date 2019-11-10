@@ -22,6 +22,7 @@ library(showtext)
 library(AER)
 library(extraDistr)
 library(e1071)
+library(stats)
 
 #reading and cleaning data
 set.seed(123)
@@ -134,7 +135,7 @@ action <- data.frame(a1 = numeric())
 for(i in 1:50) {
 shocks <- rdunif(100, 1, 8)
 
-for(j in 1:length(i0)) {
+for(j in 1:length(it)) {
 action[j,1] <- rdiscrete(1, probs = unlist(politica[it[j]+ 1,]), values = c(0,12,13,14,15,16,17,18))
 }  
 
@@ -147,3 +148,40 @@ w[,4] <- w[,4] + ((0.95)^(i - 1))*unlist(i0)^2
 #transition
 it = pmax.int(it + unlist(action) - shocks,0)
 }
+
+w_mean<- data.frame(matrix(ncol = 4, nrow = 1))
+w_mean[1,1] <- mean(w[,1])
+w_mean[1,2] <- mean(w[,2])
+w_mean[1,3] <- mean(w[,3])
+w_mean[1,4] <- mean(w[,4])
+
+#profit of alternative policies
+
+w_hat <- data.frame(matrix(ncol = 4, nrow = 100))
+w_hat[,1] <- 0
+w_hat[,2] <- 0 
+w_hat[,3] <- 0 
+w_hat[,4] <- 0
+
+it <- rdiscrete(100, probs = unlist(probi0), values = c(0:19))
+action_hat <- data.frame(a1 = numeric())
+
+for(i in 1:50) {
+  shocks <- rdunif(100, 1, 8)
+  
+  for(j in 1:length(it)) {
+    action[j,1] <- rdiscrete(1, probs = unlist(politica[it[j]+ 1,]), values = c(0,12,13,14,15,16,17,18))
+  }  
+  action_hat <- rbinom(n, size, prob)
+  #profit
+  w_hat[,1] <- w_hat[,1] + ((0.95)^(i - 1))*10*pmax(it + unlist(action), unlist(shocks))
+  w_hat[,2] <- w_hat[,2] + ((0.95)^(i - 1))*unlist(action) 
+  w_hat[,3] <- w_hat[,3] + ((0.95)^(i - 1))*apply(action,2,function(action)ifelse((action>0),1,0))
+  w_hat[,4] <- w_hat[,4] + ((0.95)^(i - 1))*unlist(i0)^2  
+  
+  #transition
+  it = pmax.int(it + unlist(action) - shocks,0)
+}
+
+data.frame(matrix(ncol = 4, nrow = 100))
+g[,k] <- w_mean - wh_mean
