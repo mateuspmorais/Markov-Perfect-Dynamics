@@ -136,4 +136,15 @@ for(j in 0:max(Estoques$i)) {
 }
 i0 <- data.frame(i0 = numeric())
 i0 <- rdiscrete(100, probs = unlist(probi0), values = c(0:19))
+
+action <- data.frame(a1 = numeric())
+for(j in 1:length(i0)) {
+action[j,1] <- rdiscrete(1, probs = unlist(politica[i0[j]+ 1,]), values = c(0,12,13,14,15,16,17,18))
+}  
+
+w <- data.frame(w1 = numeric(),w2 = numeric(), w3 = numeric(),w4 = numeric())
+w$w1 <- 10*
+w$w2 <- action 
+w$w3 <- 
+w$w4 <- i0^2  
   
