@@ -205,3 +205,10 @@ g <- data.frame(matrix(ncol = 4, nrow = 500))
 g[k,] <- w_mean - wh_mean
 }
 end_time_ineq <- Sys.time()
+
+#minimization function
+start_time_min <- Sys.time()
+minfunc <- function(par) {sum(pmin(g%*%par[1:4],0)^2)
+}
+(estimates <- optim(par = c(1,1,1,1), fn = minfunc))
+end_time_min <- Sys.time()
