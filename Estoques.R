@@ -64,16 +64,6 @@ ggplot(data = Estoques, aes(x = m, y = i)) + stat_summary(fun.data=mean_cl_norma
   theme(plot.title = element_text(lineheight=2, face="bold", size = 14, hjust = 0.5))
   
 
-
-#arma <- arma(Estoques$n, order = c(1, 1))
-#summary(arma)
-#stargazer(arma)
-p1 <- autoplot(acf(Estoques$n,lag.max = 8, plot = FALSE), conf.int.fill = '#0000FF', conf.int.value = 0.95, conf.int.type = 'ma') 
-print(p1) 
-
-p2 <- autoplot(pacf(Estoques$n,lag.max = 8, plot = FALSE), conf.int.fill = '#0000FF', conf.int.value = 0.95, conf.int.type = 'ar') 
-print(p2) 
-
 #estimation of the distribution of n
 
 kernel <- density(Estoques$m,na.rm = TRUE) 
@@ -128,23 +118,32 @@ ggplot(data = Estoques, aes(x = i, y = x)) + stat_summary(fun.data=mean_cl_norma
 
 
 #Estimation of the Value functions
+w <- data.frame(matrix(ncol = 4, nrow = 100))
+w[,1] <- 0
+w[,2] <- 0 
+w[,3] <- 0 
+w[,4] <- 0
 
-shocks <- rdunif(100, 1, 8)
 probi0 <- data.frame(probi0 = numeric())
 for(j in 0:max(Estoques$i)) {
-    probi0[j,1] <- mean(Estoques$i[Estoques$t==1] == j)
+  probi0[j,1] <- mean(Estoques$i[Estoques$t==1] == j)
 }
-i0 <- data.frame(i0 = numeric())
-i0 <- rdiscrete(100, probs = unlist(probi0), values = c(0:19))
-
+it <- rdiscrete(100, probs = unlist(probi0), values = c(0:19))
 action <- data.frame(a1 = numeric())
+
+for(i in 1:50) {
+shocks <- rdunif(100, 1, 8)
+
 for(j in 1:length(i0)) {
-action[j,1] <- rdiscrete(1, probs = unlist(politica[i0[j]+ 1,]), values = c(0,12,13,14,15,16,17,18))
+action[j,1] <- rdiscrete(1, probs = unlist(politica[it[j]+ 1,]), values = c(0,12,13,14,15,16,17,18))
 }  
 
-w <- data.frame(w1 = numeric(),w2 = numeric(), w3 = numeric(),w4 = numeric())
-w$w1 <- 10*
-w$w2 <- action 
-w$w3 <- 
-w$w4 <- i0^2  
-  
+#profit
+w[,1] <- w[,1] + ((0.95)^(i - 1))*10*pmax(it + unlist(action), unlist(shocks))
+w[,2] <- w[,2] + ((0.95)^(i - 1))*unlist(action) 
+w[,3] <- w[,3] + ((0.95)^(i - 1))*apply(action,2,function(action)ifelse((action>0),1,0))
+w[,4] <- w[,4] + ((0.95)^(i - 1))*unlist(i0)^2  
+
+#transition
+it = pmax.int(it + unlist(action) - shocks,0)
+}
