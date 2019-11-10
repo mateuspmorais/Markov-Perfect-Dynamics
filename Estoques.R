@@ -109,6 +109,9 @@ for(j in 0:max(Estoques$i)) {
 politica[j + 1,8] <- mean(Estoques$x[Estoques$i==j] == 18)
 }
 
+for(j in 1:7){
+politica[j + 21,] <- c(1,0,0,0,0,0,0,0)
+}
 ggplot(data = Estoques, aes(x = i, y = x)) + stat_summary(fun.data=mean_cl_normal) + 
   geom_smooth(method='lm',formula= Estoques$i ~ Estoques$x) +
   ylim(0, 20) + xlim(0, 20) +
@@ -119,6 +122,8 @@ ggplot(data = Estoques, aes(x = i, y = x)) + stat_summary(fun.data=mean_cl_norma
 
 
 #Estimation of the Value functions
+start_time = Sys.time()
+
 w <- data.frame(matrix(ncol = 4, nrow = 3000))
 w[,1] <- 0
 w[,2] <- 0 
@@ -155,7 +160,11 @@ w_mean[1,2] <- mean(w[,2])
 w_mean[1,3] <- mean(w[,3])
 w_mean[1,4] <- mean(w[,4])
 
+end_time <- Sys.time()
+w_time <- start_time - end_time
 #profit of alternative policies
+
+start_time = Sys.time()
 
 w_hat <- data.frame(matrix(ncol = 4, nrow = 3000))
 w_hat[,1] <- 0
@@ -168,7 +177,7 @@ for(k in 1:500){
 it <- rdiscrete(3000, probs = unlist(probi0), values = c(0:19))
 s <- rnorm(1)
 
-if(s > 0){ politica_k <- rbind(rep(c(1,0,0,0,0,0,0,0), round(s)), politica) }else{politica_k <- rbind(head(politica,round(s)),rep(c(1,0,0,0,0,0,0,0),round(s)))}
+if(s > 0){ politica_k <- rbind(rep(c(0,0,0,0,0.5,0.3,0.15,0.05), round(s)), politica) }else{politica_k <- head(politica,round(s))}
 
 for(i in 1:100) {
   shocks <- rdunif(3000, 1, 8)
@@ -195,3 +204,5 @@ wh_mean[1,4] <- mean(w_hat[,4])
 g <- data.frame(matrix(ncol = 4, nrow = 500))
 g[k,] <- w_mean - wh_mean
 }
+end_time <- Sys.time()
+inequalities_time <- start_time - end_time
