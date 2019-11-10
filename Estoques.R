@@ -132,11 +132,11 @@ w[,3] <- 0
 w[,4] <- 0
 
 
-w_hat <- data.frame(matrix(ncol = 4, nrow = 3000))
-w_hat[,1] <- 0
-w_hat[,2] <- 0 
-w_hat[,3] <- 0 
-w_hat[,4] <- 0
+w_hat <- array(dim = c(3000,4,500))
+w_hat[,1,] <- 0
+w_hat[,2,] <- 0 
+w_hat[,3,] <- 0 
+w_hat[,4,] <- 0
 
 politica_k <- data.frame(matrix(ncol = 8, nrow = 21))
 probi0 <- data.frame(probi0 = numeric())
@@ -191,7 +191,7 @@ for(l in 1:length(it_hat[j,])) {
 if(it_hat[j,l] < politica_hat[j]){action_hat[l,j] <- rdiscrete(1,probs = unlist(politica[it_hat[j,l]+ 1,]),
                                                          values = c(0,12,13,14,15,16,17,18))} else {
                                                            action_hat[l,j] <- 0
-                                                         }}}
+                                                         }}
 
 subset <- action_hat[,j]
 dummy <- apply(array(subset),1,function(subset)ifelse((subset>0),1,0))
@@ -199,11 +199,11 @@ dummy <- apply(array(subset),1,function(subset)ifelse((subset>0),1,0))
   w_hat[,1,j] <- w_hat[,1,j] + ((0.95)^(i - 1))*10*pmax(it_hat[j,] + unlist(action_hat[,j]), unlist(shocks))
   w_hat[,2,j] <- w_hat[,2,j] + ((0.95)^(i - 1))*unlist(action_hat[,j]) 
   w_hat[,3,j] <- w_hat[,3,j] + ((0.95)^(i - 1))*dummy
-  w_hat[,4,j] <- w_hat[,4,j] + ((0.95)^(i - 1))*unlist(it_hat)^2  
+  w_hat[,4,j] <- w_hat[,4,j] + ((0.95)^(i - 1))*unlist(it_hat[j,])^2  
   
   #transition
   it_hat[j,] = pmax.int(it_hat[j,] + unlist(action_hat[,j]) - shocks,0)
-}
+}}
 end_time_w <- Sys.time()
 
 wh_mean<- data.frame(matrix(ncol = 4, nrow = 1))
