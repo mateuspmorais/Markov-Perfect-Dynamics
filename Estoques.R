@@ -143,7 +143,7 @@ action[j,1] <- rdiscrete(1, probs = unlist(politica[it[j]+ 1,]), values = c(0,12
 w[,1] <- w[,1] + ((0.95)^(i - 1))*10*pmax(it + unlist(action), unlist(shocks))
 w[,2] <- w[,2] + ((0.95)^(i - 1))*unlist(action) 
 w[,3] <- w[,3] + ((0.95)^(i - 1))*apply(action,2,function(action)ifelse((action>0),1,0))
-w[,4] <- w[,4] + ((0.95)^(i - 1))*unlist(i0)^2  
+w[,4] <- w[,4] + ((0.95)^(i - 1))*unlist(it)^2  
 
 #transition
 it = pmax.int(it + unlist(action) - shocks,0)
@@ -162,26 +162,35 @@ w_hat[,1] <- 0
 w_hat[,2] <- 0 
 w_hat[,3] <- 0 
 w_hat[,4] <- 0
+politica_k <- data.frame(matrix(ncol = 8, nrow = 21))
 
+#loop
 it <- rdiscrete(100, probs = unlist(probi0), values = c(0:19))
-action_hat <- data.frame(a1 = numeric())
+s <- rnorm(1)
+
+if(s > 0){ politica_k <- rbind(rep(c(1,0,0,0,0,0,0,0), round(s)), politica) }else{politica_k <- rbind(head(politica,round(s)),rep(c(1,0,0,0,0,0,0,0),round(s)))}
 
 for(i in 1:50) {
   shocks <- rdunif(100, 1, 8)
   
   for(j in 1:length(it)) {
-    action[j,1] <- rdiscrete(1, probs = unlist(politica[it[j]+ 1,]), values = c(0,12,13,14,15,16,17,18))
+    action[j,1] <- rdiscrete(1, probs = unlist(politica_k[it[j]+ 1,]), values = c(0,12,13,14,15,16,17,18))
   }  
-  action_hat <- rbinom(n, size, prob)
   #profit
   w_hat[,1] <- w_hat[,1] + ((0.95)^(i - 1))*10*pmax(it + unlist(action), unlist(shocks))
   w_hat[,2] <- w_hat[,2] + ((0.95)^(i - 1))*unlist(action) 
   w_hat[,3] <- w_hat[,3] + ((0.95)^(i - 1))*apply(action,2,function(action)ifelse((action>0),1,0))
-  w_hat[,4] <- w_hat[,4] + ((0.95)^(i - 1))*unlist(i0)^2  
+  w_hat[,4] <- w_hat[,4] + ((0.95)^(i - 1))*unlist(it)^2  
   
   #transition
   it = pmax.int(it + unlist(action) - shocks,0)
 }
 
-data.frame(matrix(ncol = 4, nrow = 100))
-g[,k] <- w_mean - wh_mean
+wh_mean<- data.frame(matrix(ncol = 4, nrow = 1))
+wh_mean[1,1] <- mean(w_hat[,1])
+wh_mean[1,2] <- mean(w_hat[,2])
+wh_mean[1,3] <- mean(w_hat[,3])
+wh_mean[1,4] <- mean(w_hat[,4])
+
+g <- data.frame(matrix(ncol = 4, nrow = 100))
+g[1,] <- w_mean - wh_mean
