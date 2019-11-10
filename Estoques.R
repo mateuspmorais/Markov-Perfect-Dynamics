@@ -119,7 +119,7 @@ ggplot(data = Estoques, aes(x = i, y = x)) + stat_summary(fun.data=mean_cl_norma
 
 
 #Estimation of the Value functions
-w <- data.frame(matrix(ncol = 4, nrow = 100))
+w <- data.frame(matrix(ncol = 4, nrow = 3000))
 w[,1] <- 0
 w[,2] <- 0 
 w[,3] <- 0 
@@ -129,11 +129,11 @@ probi0 <- data.frame(probi0 = numeric())
 for(j in 0:max(Estoques$i)) {
   probi0[j,1] <- mean(Estoques$i[Estoques$t==1] == j)
 }
-it <- rdiscrete(100, probs = unlist(probi0), values = c(0:19))
+it <- rdiscrete(3000, probs = unlist(probi0), values = c(0:19))
 action <- data.frame(a1 = numeric())
 
-for(i in 1:50) {
-shocks <- rdunif(100, 1, 8)
+for(i in 1:100) {
+shocks <- rdunif(3000, 1, 8)
 
 for(j in 1:length(it)) {
 action[j,1] <- rdiscrete(1, probs = unlist(politica[it[j]+ 1,]), values = c(0,12,13,14,15,16,17,18))
@@ -157,21 +157,21 @@ w_mean[1,4] <- mean(w[,4])
 
 #profit of alternative policies
 
-w_hat <- data.frame(matrix(ncol = 4, nrow = 100))
+w_hat <- data.frame(matrix(ncol = 4, nrow = 3000))
 w_hat[,1] <- 0
 w_hat[,2] <- 0 
 w_hat[,3] <- 0 
 w_hat[,4] <- 0
 politica_k <- data.frame(matrix(ncol = 8, nrow = 21))
 
-#loop
-it <- rdiscrete(100, probs = unlist(probi0), values = c(0:19))
+for(k in 1:500){ 
+it <- rdiscrete(3000, probs = unlist(probi0), values = c(0:19))
 s <- rnorm(1)
 
 if(s > 0){ politica_k <- rbind(rep(c(1,0,0,0,0,0,0,0), round(s)), politica) }else{politica_k <- rbind(head(politica,round(s)),rep(c(1,0,0,0,0,0,0,0),round(s)))}
 
-for(i in 1:50) {
-  shocks <- rdunif(100, 1, 8)
+for(i in 1:100) {
+  shocks <- rdunif(3000, 1, 8)
   
   for(j in 1:length(it)) {
     action[j,1] <- rdiscrete(1, probs = unlist(politica_k[it[j]+ 1,]), values = c(0,12,13,14,15,16,17,18))
@@ -192,5 +192,6 @@ wh_mean[1,2] <- mean(w_hat[,2])
 wh_mean[1,3] <- mean(w_hat[,3])
 wh_mean[1,4] <- mean(w_hat[,4])
 
-g <- data.frame(matrix(ncol = 4, nrow = 100))
-g[1,] <- w_mean - wh_mean
+g <- data.frame(matrix(ncol = 4, nrow = 500))
+g[k,] <- w_mean - wh_mean
+}
