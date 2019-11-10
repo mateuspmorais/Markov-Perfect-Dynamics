@@ -206,19 +206,22 @@ dummy <- apply(array(subset),1,function(subset)ifelse((subset>0),1,0))
 }}
 end_time_w <- Sys.time()
 
-wh_mean<- data.frame(matrix(ncol = 4, nrow = 1))
-wh_mean[1,1] <- mean(w_hat[,1])
-wh_mean[1,2] <- mean(w_hat[,2])
-wh_mean[1,3] <- mean(w_hat[,3])
-wh_mean[1,4] <- mean(w_hat[,4])
+wh_mean<- data.frame(matrix(ncol = 4, nrow = 500))
+for(i in 1:500){
+wh_mean[i,1] <- mean(w_hat[,1,i])
+wh_mean[i,2] <- mean(w_hat[,2,i])
+wh_mean[i,3] <- mean(w_hat[,3,i])
+wh_mean[i,4] <- mean(w_hat[,4,i])
+}
 
-g <- data.frame(matrix(ncol = 4, nrow = 500))
-g[k,] <- w_mean - wh_mean
-
+g <- matrix(ncol = 4, nrow = 500)
+for(k in 1:500){
+g[k,] <- as.matrix(w_mean - wh_mean[k,])
+}
 
 #minimization function
 start_time_min <- Sys.time()
-minfunc <- function(par) {sum(pmin(g%*%par[1:4],0)^2)
+minfunc <- function(par) {sum(pmin(g%*%c(1, - par[1:3]),0)^2)
 }
-(estimates <- optim(par = c(1,1,1,1), fn = minfunc))
+(estimates <- optim(par = c(9,11,1), fn = minfunc))
 end_time_min <- Sys.time()
