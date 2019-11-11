@@ -149,9 +149,9 @@ action <- data.frame(a1 = numeric())
 action_hat <- array(dim = c(3000,500))
 
 it <- i0
-it_hat <- array(dim = c(500,3000))
+it_hat <- array(dim = c(3000,500))
 for(i in 1:500){
-it_hat[i,] = i0
+it_hat[,i] = i0
 }
 
 politica_hat <- array(dim = c(500))
@@ -167,7 +167,7 @@ action[j,1] <- rdiscrete(1, probs = unlist(politica[it[j]+ 1,]), values = c(0,12
 }  
 
 #profit
-w[,1] <- w[,1] + ((0.95)^(i - 1))*10*pmax(it + unlist(action), unlist(shocks))
+w[,1] <- w[,1] + ((0.95)^(i - 1))*10*pmin(it + unlist(action), unlist(shocks))
 w[,2] <- w[,2] + ((0.95)^(i - 1))*unlist(action) 
 w[,3] <- w[,3] + ((0.95)^(i - 1))*apply(action,2,function(action)ifelse((action>0),1,0))
 w[,4] <- w[,4] + ((0.95)^(i - 1))*unlist(it)^2  
@@ -180,8 +180,8 @@ it = pmax.int(it + unlist(action) - shocks,0)
 
 #my.list <- list(d1, d2)
 for(j in 1:500){
-for(l in 1:length(it_hat[j,])) {
-if(it_hat[j,l] < politica_hat[j]){action_hat[l,j] <- rdiscrete(1,probs = unlist(politica[it_hat[j,l]+ 1,]),
+for(l in 1:3000){
+if(it_hat[l,j] < politica_hat[j]){action_hat[l,j] <- rdiscrete(1,probs = unlist(politica[it_hat[l,j]+ 1,]),
                                                          values = c(0,12,13,14,15,16,17,18))} else {
                                                            action_hat[l,j] <- 0
                                                          }}
@@ -190,13 +190,13 @@ action_hat <- ifelse(action_hat >0 , max(action_hat + round(rnorm(1)),0), 0)
 subset <- action_hat[,j]
 dummy <- apply(array(subset),1,function(subset)ifelse((subset>0),1,0))
   #profit
-  w_hat[,1,j] <- w_hat[,1,j] + ((0.95)^(i - 1))*10*pmax(it_hat[j,] + unlist(action_hat[,j]), unlist(shocks))
+  w_hat[,1,j] <- w_hat[,1,j] + ((0.95)^(i - 1))*10*pmin(it_hat[j,] + unlist(action_hat[,j]), unlist(shocks))
   w_hat[,2,j] <- w_hat[,2,j] + ((0.95)^(i - 1))*unlist(action_hat[,j]) 
   w_hat[,3,j] <- w_hat[,3,j] + ((0.95)^(i - 1))*dummy
   w_hat[,4,j] <- w_hat[,4,j] + ((0.95)^(i - 1))*unlist(it_hat[j,])^2  
   
   #transition
-  it_hat[j,] = pmax.int(it_hat[j,] + unlist(action_hat[,j]) - shocks,0)
+  it_hat[,j] = pmax.int(it_hat[,j] + unlist(action_hat[,j]) - shocks,0)
 }}
 end_time_w <- Sys.time()
 
