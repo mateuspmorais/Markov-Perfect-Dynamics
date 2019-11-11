@@ -6,7 +6,7 @@ rm(list = ls())
 Sys.setlocale("LC_ALL","pt_BR.UTF-8")
 options(encoding = "UTF-8")
 # loading packages
-
+require("numDeriv")
 library(plm)
 library(readr)
 require(graphics)
@@ -153,7 +153,6 @@ it_hat <- array(dim = c(3000,500))
 for(i in 1:500){
 it_hat[,i] = i0
 }
-
 politica_hat <- array(dim = c(500))
 politica_hat <- rnorm(500,8,1)
 
@@ -178,14 +177,13 @@ it = pmax.int(it + unlist(action) - shocks,0)
 
 #profit of alternative policies
 
-#my.list <- list(d1, d2)
 for(j in 1:500){
 for(l in 1:3000){
 if(it_hat[l,j] < politica_hat[j]){action_hat[l,j] <- rdiscrete(1,probs = unlist(politica[it_hat[l,j]+ 1,]),
                                                          values = c(0,12,13,14,15,16,17,18))} else {
                                                            action_hat[l,j] <- 0
                                                          }}
-action_hat <- ifelse(action_hat >0 , max(action_hat + round(rnorm(1)),0), 0)
+action_hat[,j] <- ifelse(action_hat[,j] > 0 , max(action_hat[,j] + round(rnorm(1,0,0.1)),0), 0)
   
 subset <- action_hat[,j]
 dummy <- apply(array(subset),1,function(subset)ifelse((subset>0),1,0))
@@ -209,9 +207,9 @@ wh_mean[i,4] <- - mean(w_hat[,4,i])
 }
 
 w_mean[1,1] <- mean(w[,1])
-w_mean[1,2] <- -mean(w[,2])
-w_mean[1,3] <- -mean(w[,3])
-w_mean[1,4] <- -mean(w[,4])
+w_mean[1,2] <- - mean(w[,2])
+w_mean[1,3] <- - mean(w[,3])
+w_mean[1,4] <- - mean(w[,4])
 g <- matrix(ncol = 4, nrow = 500)
 for(k in 1:500){
 g[k,] <- as.matrix(w_mean - wh_mean[k,])
@@ -220,7 +218,11 @@ g[k,] <- as.matrix(w_mean - wh_mean[k,])
 
 #minimization function
 start_time_min <- Sys.time()
-minfunc <- function(par) {sum(pmin(g%*%c(1, par[1:3]),0)^2)
+minfunc <- function(par) {sum(pmin(g[,1] + g[,2]*par[1] + g[,3]*par[2] + g[,4]*par[3],0)^2)
 }
-(estimates <- optim(par = c(0,0,0), fn = minfunc, lower = 0, upper = 10, method = 'L-BFGS-B'))
+(estimates <- optim(par = c(1000,1000,0), fn = minfunc))
+
 end_time_min <- Sys.time()
+
+
+
