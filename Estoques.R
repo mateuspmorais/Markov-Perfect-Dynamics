@@ -138,7 +138,6 @@ w_hat[,2,] <- 0
 w_hat[,3,] <- 0 
 w_hat[,4,] <- 0
 
-politica_k <- data.frame(matrix(ncol = 8, nrow = 21))
 probi0 <- data.frame(probi0 = numeric())
 
 for(j in 0:max(Estoques$i)) {
@@ -149,10 +148,10 @@ i0 <- rdiscrete(3000, probs = unlist(probi0), values = c(0:19))
 action <- data.frame(a1 = numeric())
 action_hat <- array(dim = c(3000,500))
 
-it = i0
-it_hat <- i0
-for(i in 1:499){
-it_hat = as.array(as.matrix(rbind(it_hat,i0)))
+it <- i0
+it_hat <- array(dim = c(500,3000))
+for(i in 1:500){
+it_hat[i,] = i0
 }
 
 politica_hat <- array(dim = c(500))
@@ -177,12 +176,6 @@ w[,4] <- w[,4] + ((0.95)^(i - 1))*unlist(it)^2
 it = pmax.int(it + unlist(action) - shocks,0)
 
 
-w_mean<- data.frame(matrix(ncol = 4, nrow = 1))
-w_mean[1,1] <- mean(w[,1])
-w_mean[1,2] <- mean(w[,2])
-w_mean[1,3] <- mean(w[,3])
-w_mean[1,4] <- mean(w[,4])
-
 #profit of alternative policies
 
 #my.list <- list(d1, d2)
@@ -192,7 +185,8 @@ if(it_hat[j,l] < politica_hat[j]){action_hat[l,j] <- rdiscrete(1,probs = unlist(
                                                          values = c(0,12,13,14,15,16,17,18))} else {
                                                            action_hat[l,j] <- 0
                                                          }}
-
+action_hat <- ifelse(action_hat >0 , max(action_hat + round(rnorm(1)),0), 0)
+  
 subset <- action_hat[,j]
 dummy <- apply(array(subset),1,function(subset)ifelse((subset>0),1,0))
   #profit
@@ -209,19 +203,24 @@ end_time_w <- Sys.time()
 wh_mean<- data.frame(matrix(ncol = 4, nrow = 500))
 for(i in 1:500){
 wh_mean[i,1] <- mean(w_hat[,1,i])
-wh_mean[i,2] <- mean(w_hat[,2,i])
-wh_mean[i,3] <- mean(w_hat[,3,i])
-wh_mean[i,4] <- mean(w_hat[,4,i])
+wh_mean[i,2] <- - mean(w_hat[,2,i])
+wh_mean[i,3] <- - mean(w_hat[,3,i])
+wh_mean[i,4] <- - mean(w_hat[,4,i])
 }
 
+w_mean[1,1] <- mean(w[,1])
+w_mean[1,2] <- -mean(w[,2])
+w_mean[1,3] <- -mean(w[,3])
+w_mean[1,4] <- -mean(w[,4])
 g <- matrix(ncol = 4, nrow = 500)
 for(k in 1:500){
 g[k,] <- as.matrix(w_mean - wh_mean[k,])
 }
 
+
 #minimization function
 start_time_min <- Sys.time()
-minfunc <- function(par) {sum(pmin(g%*%c(1, - par[1:3]),0)^2)
+minfunc <- function(par) {sum(pmin(g%*%c(1, par[1:3]),0)^2)
 }
-(estimates <- optim(par = c(9,11,1), fn = minfunc))
+(estimates <- optim(par = c(0,0,0), fn = minfunc, lower = 0, upper = 10, method = 'L-BFGS-B'))
 end_time_min <- Sys.time()
